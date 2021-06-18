@@ -1,6 +1,7 @@
 import hashlib
+import re
 from pathlib import Path
-
+from shutil import copyfile
 from jinja2 import Markup, escape
 
 REPO = Path('.')
@@ -19,5 +20,12 @@ def paragraphize(value, classes="govuk-body-l govuk-!-margin-bottom-4"):
 
 
 def file_fingerprint(path, root=DIST):
-    contents = open(str(root) + path, 'rb').read()
-    return path + '?' + hashlib.md5(contents).hexdigest()
+    fullpath = f"{root}{path}"
+    contents = open(fullpath, 'rb').read()
+
+    hash = hashlib.md5(contents).hexdigest()
+    newpath = re.sub(r'^(.*)\.(.+?)$', rf'\1-{hash}.\2', path)
+    copyfile(fullpath, f"{root}{newpath}")
+
+    return newpath
+
